@@ -1,373 +1,199 @@
 package lab5;
 
+
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.*;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.ArrayList;
 
+public class GUI extends JFrame implements ActionListener {
 
-class PhoneInfo implements Serializable {
-    String name;
-    String phoneNumber;
+    public static PhoneBook phoneBook = new PhoneBook();
+    public static ArrayList<Person> personList;
+    public static int position; // This little boy here helps me keep count on where iam in the arraylist when buttons get pressed.
+    private JPanel buttonPanel, textPanel;
+    private JTextField nameInputField, numInputField, searchInputField;
+    private JButton add, delete, search, next, load, save;
 
-    public PhoneInfo(String name, String num) {
-        this.name = name;
-        phoneNumber = num;
+    public GUI() {
+
+        // Font
+        Font font = new Font("Comic Sans", Font.PLAIN, 15); // Best font 2021
+
+        // Frame Settings
+        setLocationRelativeTo(null); // Center of screen
+        setTitle("SuperAids&BronzeAged- Phonebook searcher"); // Window Title
+        setDefaultCloseOperation(EXIT_ON_CLOSE); // Terminate on exit
+        setVisible(true); // Show me da window
+        setSize(1024, 512); // Size Stuff
+
+        // Container stuff
+        Container container = getContentPane(); // Container
+        container.setBackground(Color.MAGENTA); // Best faking color hello?
+        container.setLayout(new GridLayout(1, 2)); // yes.
+
+        // Buttons and their shit settings
+        add = new JButton("Add"); add.setFont(font); add.setVisible(true); add.addActionListener(this);
+        delete = new JButton("Delete"); delete.setFont(font); delete.setVisible(true); delete.addActionListener(this);
+        search = new JButton("Search"); search.setFont(font); search.setVisible(true); search.addActionListener(this);
+        next = new JButton("Next"); next.setFont(font); next.setVisible(true); next.addActionListener(this);
+        load = new JButton("Load Phonebook"); load.setFont(font); load.setVisible(true); load.addActionListener(this);
+        save = new JButton("Save Phonebook"); save.setFont(font); save.setVisible(true); save.addActionListener(this);
+
+        // Fields and also their shitty settings
+        nameInputField = new JTextField("", 20); nameInputField.setFont(font); nameInputField.setEditable(true); nameInputField.addActionListener(this);
+        numInputField = new JTextField("", 20); numInputField.setFont(font); numInputField.setEditable(true); numInputField.addActionListener(this);
+        searchInputField = new JTextField("", 20); searchInputField.setFont(font); searchInputField.setEditable(true); searchInputField.addActionListener(this);
+
+        // Init the panel
+        buttonPanel = new JPanel(new GridLayout(3, 3));
+        textPanel = new JPanel(new GridLayout(3, 1));
+
+        // Adding the most hated buttons on earth to the panel
+        this.buttonPanel.add(add); this.buttonPanel.add(delete); this.buttonPanel.add(search); this.buttonPanel.add(next); this.buttonPanel.add(load); this.buttonPanel.add(save);
+
+        // Adding the text stuff to another panel
+        textPanel.add(nameInputField); textPanel.add(numInputField); textPanel.add(searchInputField);
+
+        // Adding stuff to container
+        container.add(buttonPanel); container.add(textPanel); container.setVisible(true);
+
     }
 
-    public void showPhoneInfo() {
-        System.out.println("name: " + name);
-        System.out.println("phone: " + phoneNumber);
-    }
+    public void actionPerformed(ActionEvent e) {
 
-    public String toString() {
-        return "name: " + name + '\n' + "phone: " + phoneNumber + '\n';
-    }
+        /*
+         * Aight so below will be a lof of if statements for the buttons.
+         * Of course each button will do something.
+         * If you dont understand whats going on in the functions.
+         * Read again.
 
-    public int hashCode() {
-        return name.hashCode();
-    }
+         * Ok I'll explain the first
+         * SO
+         *
+         * 1. CHECKING IF the actionListener get the button "ADD" pressed.
+         * 2. yes a counter boi.
+         * 3. Reset my fields so they empty bby
+         */
 
-    public boolean equals(Object obj) {
-        PhoneInfo cmp = (PhoneInfo) obj;
-        return name.compareTo(cmp.name) == 0;
-    }
-}
 
-class PhoneUnivInfo extends PhoneInfo {
-    String major;
-    int year;
+        if (e.getSource().equals(add)) {
 
-    public PhoneUnivInfo(String name, String num, String major, int year) {
-        super(name, num);
-        this.major = major;
-        this.year = year;
-    }
+            if (position == 0) {
+                nameInputField.setText(null); // Reset the stuff
+                numInputField.setText(null); // Reset the stuff
+            }
 
-    public void showPhoneInfo() {
-        super.showPhoneInfo();
-        System.out.println("major: " + major);
-        System.out.println("year: " + year);
-    }
+            position += 1; // Increment me position
+            searchInputField.setText("Name and telly-FÅN-number"); // Soooooooooooo, this will change the input field to this.
 
-    public String toString() {
-        return super.toString()
-                + "major: " + major + '\n' + "year: " + year + '\n';
-    }
-}
+            searchInputField.setEditable(true); // Allow the USER delete my shitty text and put in theirs.
+            numInputField.setEditable(true); // Allow the user type in a a number
 
-class PhoneCompanyInfo extends PhoneInfo {
-    String company;
+            if (position >= 2) {
+                // Get text if its this input
+                if (phoneBook.addPerson(nameInputField.getText(), Integer.parseInt(nameInputField.getText()))) {
 
-    public PhoneCompanyInfo(String name, String num, String company) {
-        super(name, num);
-        this.company = company;
-    }
+                    searchInputField.setText("Person Added my guy =)"); // Say "Person added my guy with a smiley
 
-    public void showPhoneInfo() {
-        super.showPhoneInfo();
-        System.out.println("company: " + company);
-    }
+                    nameInputField.setText(null); // reset
+                    nameInputField.setEditable(false); // no edit for u
 
-    public String toString() {
-        return super.toString()
-                + "company: " + company + '\n';
-    }
-}
+                    numInputField.setText(null); // reset
+                    numInputField.setEditable(false); // no edit for u
 
-class PhoneBookManager {
-    static PhoneBookManager inst = null;
-    private final File dataFile = new File("PhoneBook.dat");
-    HashSet<PhoneInfo> infoStorage = new HashSet<>();
-
-    private PhoneBookManager() {
-        readFromFile();
-    }
-
-    public static PhoneBookManager createManagerInst() {
-        if (inst == null)
-            inst = new PhoneBookManager();
-        return inst;
-    }
-
-    public String searchData(String name) {
-        PhoneInfo info = search(name);
-        if (info == null)
-            return null;
-        else
-            return info.toString();
-    }
-
-    public boolean deleteData(String name) {
-        Iterator<PhoneInfo> itr = infoStorage.iterator();
-        while (itr.hasNext()) {
-            PhoneInfo curInfo = itr.next();
-            if (name.compareTo(curInfo.name) == 0) {
-                itr.remove();
-                return true;
+                } else { // Else i tell u, no kneegrows allowed!
+                    searchInputField.setText("nono kneegrows not allowed, try again.");
+                }
             }
         }
-        return false;
-    }
 
-    private PhoneInfo search(String name) {
-        for (PhoneInfo curInfo : infoStorage) {
-            if (name.compareTo(curInfo.name) == 0)
-                return curInfo;
-        }
-        return null;
-    }
+        if (e.getSource().equals(delete)) {
 
-    public void readFromFile() {
-        if (!dataFile.exists())
-            return;
-        try {
-            FileInputStream file = new FileInputStream(dataFile);
-            ObjectInputStream in = new ObjectInputStream(file);
-            while (true) {
-                PhoneInfo info = (PhoneInfo) in.readObject();
-                if (info == null)
-                    break;
-                infoStorage.add(info);
+            nameInputField.setEditable(false);
+            numInputField.setEditable(false);
+
+            if (!numInputField.getText().equals("")) {
+                searchInputField.setText(phoneBook.deletePerson(nameInputField.getText(), Integer.parseInt(numInputField.getText())));
             }
-            in.close();
-        } catch (IOException | ClassNotFoundException ignored) {
-        }
-    }
-}
 
-class SearchEventHandler implements ActionListener {
-    JTextField searchField;
-    JTextArea textArea;
-
-    public SearchEventHandler(JTextField field, JTextArea area) {
-        searchField = field;
-        textArea = area;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        String name = searchField.getText();
-        PhoneBookManager manager = PhoneBookManager.createManagerInst();
-        String srchResult = manager.searchData(name);
-        if (srchResult == null) {
-            textArea.append("Search Failed: info does not exist.\n");
-        } else {
-            textArea.append("Search Completed:\n");
-            textArea.append(srchResult);
-            textArea.append("\n");
-        }
-    }
-}
-
-class AddEventHandler implements ActionListener {
-    JTextField name;
-    JTextField phone;
-    JTextField major;
-    JTextField year;
-    JTextField company;
-    JTextArea text;
-
-    boolean isAdded;
-
-    PhoneInfo info;
-
-    public AddEventHandler(JTextField nameField, JTextField phoneField, JTextField majorField, JTextField yearField, JTextArea textArea) {
-        name = nameField;
-        phone = phoneField;
-        major = majorField;
-        year = yearField;
-        text = textArea;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        PhoneBookManager manager = PhoneBookManager.createManagerInst();
-        if (!major.getText().equals("") && year.getText().equals("")) {
-            company = major;
-            info = new PhoneCompanyInfo(name.getText(), phone.getText(), company.getText());
-            isAdded = manager.infoStorage.add(info);
-        } else if (!major.getText().equals("") && !year.getText().equals("")) {
-            info = new PhoneUnivInfo(name.getText(), phone.getText(), major.getText(), Integer.parseInt(year.getText()));
-            isAdded = manager.infoStorage.add(info);
-        } else {
-            info = new PhoneInfo(name.getText(), phone.getText());
-            isAdded = manager.infoStorage.add(info);
         }
 
-        if (isAdded) {
-            text.append("Update Completed.\n");
-        } else {
-            text.append("Update Failed: info already exist.\n");
+        if (e.getSource().equals(search)) {
+
+            String holder; // useless piece of shit holding stuff for me. Just like a bitch but for free.
+
+            nameInputField.setEditable(false);
+            numInputField.setEditable(false);
+            holder = searchInputField.getText();
+            searchInputField.setText(null);
+
+            personList = phoneBook.search(holder);
+
+            if (personList.size() == 0) {
+                nameInputField.setText("Name please for the sake of god");
+                numInputField.setText(null);
+            } else if (personList.size() == 1) {
+                nameInputField.setText(personList.get(0).getFullName());
+                numInputField.setText(String.valueOf(personList.get(0).getPhoneNumber()));
+            } else {
+                next.setEnabled(true);
+                position = 0; // go back to 0
+                nameInputField.setText(personList.get(0).getFullName());
+                numInputField.setText(String.valueOf(personList.get(0).getPhoneNumber()));
+            }
+
         }
-    }
-}
 
-class DeleteEventHandler implements ActionListener {
-    JTextField delField;
-    JTextArea textArea;
+        if (e.getSource().equals(next)) {
 
-    public DeleteEventHandler(JTextField field, JTextArea area) {
-        delField = field;
-        textArea = area;
-    }
+            nameInputField.setEditable(false);
+            numInputField.setEditable(false);
+            position += 1; // go on next boi.
+            nameInputField.setText(personList.get(position).getFullName());
+            numInputField.setText(String.valueOf(personList.get(position).getPhoneNumber()));
 
-    public void actionPerformed(ActionEvent e) {
-        String name = delField.getText();
-        PhoneBookManager manager = PhoneBookManager.createManagerInst();
-        boolean isDeleted = manager.deleteData(name);
-        if (isDeleted)
-            textArea.append("Remove Completed.\n");
-        else
-            textArea.append("Remove Failed: info does not exist.\n");
-    }
-}
+            // We do no wanna fuck up memory yes, so if we get out of memory we go back and no more search for u
+            if (position == personList.size() - 1) {
+                position = 0;
+                next.setEnabled(false);
+            }
+        }
 
-class MainFrame extends JFrame {
-    JTextField srchField = new JTextField(15);
-    JButton srchBtn = new JButton("SEARCH");
+        if (e.getSource().equals(load)) {
+            String holder; // useless piece of shit holding stuff for me. Just like a bitch but for free.
+            nameInputField.setEditable(false);
+            numInputField.setEditable(false);
+            holder = searchInputField.getText();
 
-    JButton addBtn = new JButton("ADD");
-    JRadioButton rbtn1 = new JRadioButton("General");
-    JRadioButton rbtn2 = new JRadioButton("University");
-    JRadioButton rbtn3 = new JRadioButton("Company");
-    ButtonGroup buttonGroup = new ButtonGroup();
+            searchInputField.setText(null);
+            nameInputField.setText(phoneBook.load(holder));
 
-    JLabel nameLabel = new JLabel("NAME");
-    JTextField nameField = new JTextField(15);
-    JLabel phoneLabel = new JLabel("PHONE NUMBER");
-    JTextField phoneField = new JTextField(15);
-    JLabel majorLabel = new JLabel("MAJOR");
-    JTextField majorField = new JTextField(15);
-    JLabel yearLabel = new JLabel("YEAR");
-    JTextField yearField = new JTextField(15);
+            if (nameInputField.getText().equals("Phone book loaded")) {
+                load.setEnabled(true);
+                save.setEnabled(true);
+                search.setEnabled(true);
+                add.setEnabled(true);
+                delete.setEnabled(true);
+            }
 
-    JTextField delField = new JTextField(15);
-    JButton delBtn = new JButton("DEL");
+        }
 
-    JTextArea textArea = new JTextArea(10, 25);
+        if (e.getSource().equals(save)) {
 
-    public MainFrame(String title) {
-        super(title);
-        setBounds(100, 200, 330, 450);
-        setSize(730, 350);
-        setLayout(new GridLayout(0, 2, 0, 0));
-        Border border = BorderFactory.createEtchedBorder();
+            String holder; // useless piece of shit holding stuff for me. Just like a bitch but for free.
 
-        Border srchBorder = BorderFactory.createTitledBorder(border, "Search");
-        JPanel srchPanel = new JPanel();
-        srchPanel.setBorder(srchBorder);
-        srchPanel.setLayout(new FlowLayout());
-        srchPanel.add(srchField);
-        srchPanel.add(srchBtn);
+            nameInputField.setEditable(false);
+            numInputField.setEditable(false);
+            holder = searchInputField.getText();
 
-        Border addBorder = BorderFactory.createTitledBorder(border, "Add");
-        JPanel addPanel = new JPanel();
-        addPanel.setBorder(addBorder);
-        addPanel.setLayout(new FlowLayout());
+            searchInputField.setText(null);
 
-        JPanel addInputPanel = new JPanel();
-        addInputPanel.setLayout(new GridLayout(0, 2, 5, 5));
+            if (holder != null) {
+                nameInputField.setText(phoneBook.save(holder));
+            } else nameInputField.setText("File name senpai? o.o");
 
-        buttonGroup.add(rbtn1);
-        buttonGroup.add(rbtn2);
-        buttonGroup.add(rbtn3);
-
-        addPanel.add(rbtn1);
-        addPanel.add(rbtn2);
-        addPanel.add(rbtn3);
-        addPanel.add(addBtn);
-
-        addInputPanel.add(nameLabel);
-        addInputPanel.add(nameField);
-        addInputPanel.add(phoneLabel);
-        addInputPanel.add(phoneField);
-        addInputPanel.add(majorLabel);
-        addInputPanel.add(majorField);
-        addInputPanel.add(yearLabel);
-        addInputPanel.add(yearField);
-
-        majorLabel.setVisible(false);
-        majorField.setVisible(false);
-        yearLabel.setVisible(false);
-        yearField.setVisible(false);
-
-        rbtn1.setSelected(true);
-        addPanel.add(addInputPanel);
-
-        rbtn1.addItemListener(
-                new ItemListener() {
-                    public void itemStateChanged(ItemEvent e) {
-                        if (e.getStateChange() == ItemEvent.SELECTED) {
-                            majorLabel.setVisible(false);
-                            majorField.setVisible(false);
-                            yearLabel.setVisible(false);
-                            yearField.setVisible(false);
-                            majorField.setText("");
-                            yearField.setText("");
-                        }
-                    }
-                }
-        );
-
-        rbtn2.addItemListener(
-                new ItemListener() {
-                    public void itemStateChanged(ItemEvent e) {
-                        if (e.getStateChange() == ItemEvent.SELECTED) {
-                            majorLabel.setVisible(true);
-                            majorLabel.setText("MAJOR");
-                            majorField.setVisible(true);
-                            yearLabel.setVisible(true);
-                            yearField.setVisible(true);
-                        }
-                    }
-                }
-        );
-
-        rbtn3.addItemListener(
-                new ItemListener() {
-                    public void itemStateChanged(ItemEvent e) {
-                        if (e.getStateChange() == ItemEvent.SELECTED) {
-                            majorLabel.setVisible(true);
-                            majorLabel.setText("COMPANY");
-                            majorField.setVisible(true);
-                            yearLabel.setVisible(false);
-                            yearField.setVisible(false);
-                            yearField.setText("");
-                        }
-                    }
-                }
-        );
-
-        Border delBorder = BorderFactory.createTitledBorder(border, "Delete");
-        JPanel delPanel = new JPanel();
-        delPanel.setBorder(delBorder);
-        delPanel.setLayout(new FlowLayout());
-        delPanel.add(delField);
-        delPanel.add(delBtn);
-
-        JScrollPane scrollTextArea = new JScrollPane(textArea);
-        Border textBorder = BorderFactory.createTitledBorder(border, "Information Board");
-        scrollTextArea.setBorder(textBorder);
-
-        JPanel actionPanel = new JPanel();
-        actionPanel.setLayout(new BorderLayout());
-        actionPanel.add(srchPanel, BorderLayout.NORTH);
-        actionPanel.add(addPanel, BorderLayout.CENTER);
-        actionPanel.add(delPanel, BorderLayout.SOUTH);
-
-        add(actionPanel);
-        add(scrollTextArea);
-
-        srchBtn.addActionListener(new SearchEventHandler(srchField, textArea));
-        addBtn.addActionListener(new AddEventHandler(nameField, phoneField, majorField, yearField, textArea));
-        delBtn.addActionListener(new DeleteEventHandler(delField, textArea));
-
-        setVisible(true);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    }
-}
+        } // Save Func
+    } // Action Event
+} // Public GUI Class
